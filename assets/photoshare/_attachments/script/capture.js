@@ -5,7 +5,7 @@ var selectedPictureId = null;
 
 // Helper Methods
 
-function addImage(imageId) {
+function addThumbnail(thumbnailId, originalId) {
     var newImg = $("<img></img>")
                  .addClass('thumbnail')
                  .css('float', 'left')
@@ -13,8 +13,8 @@ function addImage(imageId) {
                  .error(function() {
                    $(this).hide();
                  })
-                 .attr({id: imageId,
-                        src: '/photoshare/'+imageId+'/thumbnail.jpg'
+                 .attr({id: originalId,
+                        src: '/photoshare/'+thumbnailId+'/thumbnail.jpg'
                        });
     newImg.click(onImageClick);
     $('#pictures').prepend(newImg);
@@ -69,14 +69,12 @@ function setupSync() {
     });
 }
 
-
-
 // Capture
 
 function onCaptureSuccess(imageData) {
   console.log("onCaptureSuccess");
   var onSaveSuccess = function(imageDoc) {
-    addImage(imageDoc.id);
+    //addThumbnail(imageDoc.id);
     setMessage('');
   };
   var onSaveFailure = function(xhr, type) {
@@ -120,7 +118,7 @@ function changesCallback(opts) {
   onDBChange(opts);
   $.ajax({
     type: 'GET',
-    url: '/photoshare/_changes?feed=longpoll&since='+since,
+    url: '/photoshare/_changes?feed=longpoll&filter=photoshare/thumbnail&since='+since,
     dataType: 'json',
     success: changesCallback,
     error: function() {
@@ -146,8 +144,8 @@ function onDBChange(opts) {
 function listPictures(data) {
   if (data.results) {
     for (var i = 0; i < data.results.length; i++) {
-      if(!data.results[i].deleted && data.results[i].id.indexOf('_design/') != 0) {
-        addImage(data.results[i].id);
+      if(!data.results[i].deleted) {
+        addThumbnail(data.results[i].id, data.results[i].original_id);
       }
     }
   }
@@ -175,7 +173,7 @@ function sendComment() {
 function onImageClick() {
   // FIXME: maybe use a hidden field instead?
   selectedPictureId = this.id;
-  $('#photoview-image').attr('src', '/photoshare/'+this.id+'/original.jpg').css('width', '100%');
+  $('#photoview-image').attr('src', '/photoshare/'+selectedPictureId+'/original.jpg').css('width', '100%');
   $('#photoview').css("-webkit-transform","translate(0,0)");
 
   var onFetchSuccess = function(response) {
@@ -195,7 +193,7 @@ function onImageClick() {
   console.log(selectedPictureId);
   $.ajax({
    type: 'GET',
-   url: '/photoshare/_design/photoshare/_view/photo_and_comments?startkey=["'+selectedPictureId+'",1]&endkey=["'+selectedPictureId+'",1]',
+   url: '/photoshare/_design/photoshare/_view/photo_and_comments?startkey=["'+selectedPictureId+'",0]&endkey=["'+selectedPictureId+'",1]',
    dataType: 'json',
    contentType: 'application/json',
    success: onFetchSuccess,
