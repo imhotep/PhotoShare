@@ -3,6 +3,8 @@ PhoneGap.UsePolling = true;
 
 var selectedPictureId = null;
 
+// prompt = console.log
+
 // Helper Methods
 
 function addThumbnail(thumbnailId, originalId) {
@@ -75,7 +77,6 @@ function setupSync() {
 function onCaptureSuccess(imageData) {
   console.log("onCaptureSuccess");
   var onSaveSuccess = function(imageDoc) {
-    //addThumbnail(imageDoc.id);
     setMessage('');
   };
   var onSaveFailure = function(xhr, type) {
@@ -119,7 +120,7 @@ function changesCallback(opts) {
   onDBChange(opts);
   $.ajax({
     type: 'GET',
-    url: '/photoshare/_changes?feed=longpoll&since='+since,
+    url: '/photoshare/_changes?include_docs=true&feed=longpoll&since='+since,
     dataType: 'json',
     success: changesCallback,
     error: function() {
@@ -145,8 +146,8 @@ function onDBChange(opts) {
 function listPictures(data) {
   if (data.results) {
     for (var i = 0; i < data.results.length; i++) {
-      if(!data.results[i].deleted) {
-        addThumbnail(data.results[i].id, data.results[i].original_id);
+      if(!data.results[i].deleted && data.results[i].doc.original_id) {
+        addThumbnail(data.results[i].id, data.results[i].doc.original_id);
       }
     }
   }
@@ -156,6 +157,7 @@ function sendComment() {
     var commentDoc = {
       "type": "comment",
       "photo": selectedPictureId,
+      "created_at" : new Date(),
       "author": $('#comment-author').val(),
       "comment": $('#comment-text').val()
     };
@@ -173,12 +175,32 @@ function sendComment() {
 
 function onImageClick() {
   // FIXME: maybe use a hidden field instead?
-  selectedPictureId = this.id;
-  $('#photoview-image').attr('src', '/photoshare/'+selectedPictureId+'/original.jpg').css('width', '100%');
+  var selectedPictureId = this.id;
+  var tmpImgSrc = this.src;
+  $('#photoview-image').attr('src', tmpImgSrc).css('width', '100%');
   $('#photoview').css("-webkit-transform","translate(0,0)");
-
+  
+  function showBigPhoto() {
+      console.log("showBigPhoto")
+      $('#photoview-image').attr('src', '/photoshare/'+selectedPictureId+'/original.jpg')
+  }
+  
+  // switch to the hi res if we have it
+  $.ajax({
+   type: 'GET',
+   url:'/photoshare/'+selectedPictureId,
+   dataType: 'json',
+   contentType: 'application/json',
+   success: showBigPhoto,
+   error: function() {
+       // trigger replication, on success, update photo
+       console.log("no big photo")
+       
+   }
+   });
+   
   var renderComments = function(response) {
-    console.log(JSON.stringify(response));
+    // console.log(JSON.stringify(response));
     for(var i = 0 , j = response.rows.length ; i < j ; i++) {
       addComment(response.rows[i].value);
     }
@@ -191,10 +213,9 @@ function onImageClick() {
   var onFetchFailure = function(xhr, type) {
     console.log(type + ' ' + xhr.responseText);
   }
-  console.log(selectedPictureId);
   $.ajax({
    type: 'GET',
-   url: '/photoshare/_design/photoshare/_view/photo_and_comments?startkey=["'+selectedPictureId+'",0]&endkey=["'+selectedPictureId+'",1]',
+   url: '/photoshare/_design/photoshare/_view/comments?startkey=["'+selectedPictureId+'"]&endkey=["'+selectedPictureId+'",{}]',
    dataType: 'json',
    contentType: 'application/json',
    success: renderComments,
