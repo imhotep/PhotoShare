@@ -52,7 +52,8 @@ function setupSync() {
       url: '/_replicate',
       data: JSON.stringify({
           source : syncpoint,
-          target : "photoshare"
+          target : "photoshare",
+          filter : "photoshare/thumbnail"
       }),
       dataType: 'json',
       contentType: 'application/json'
@@ -118,7 +119,7 @@ function changesCallback(opts) {
   onDBChange(opts);
   $.ajax({
     type: 'GET',
-    url: '/photoshare/_changes?feed=longpoll&filter=photoshare/thumbnail&since='+since,
+    url: '/photoshare/_changes?feed=longpoll&since='+since,
     dataType: 'json',
     success: changesCallback,
     error: function() {
