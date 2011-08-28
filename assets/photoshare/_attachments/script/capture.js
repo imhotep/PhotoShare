@@ -195,7 +195,18 @@ function onImageClick() {
    error: function() {
        // trigger replication, on success, update photo
        console.log("no big photo")
-       
+       $.ajax({
+         type: 'POST',
+         url: '/_replicate',
+         data: JSON.stringify({
+             source : "http://couchbase.ic.ht/photoshare",
+             target : "photoshare",
+             doc_ids : [""+selectedPictureId]
+         }),
+         dataType: 'json',
+         contentType: 'application/json',
+         success: showBigPhoto
+       });       
    }
    });
    
