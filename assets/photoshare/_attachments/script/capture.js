@@ -177,7 +177,7 @@ function onImageClick() {
   $('#photoview-image').attr('src', '/photoshare/'+selectedPictureId+'/original.jpg').css('width', '100%');
   $('#photoview').css("-webkit-transform","translate(0,0)");
 
-  var onFetchSuccess = function(response) {
+  var renderComments = function(response) {
     console.log(JSON.stringify(response));
     for(var i = 0 , j = response.rows.length ; i < j ; i++) {
       addComment(response.rows[i].value);
@@ -197,7 +197,7 @@ function onImageClick() {
    url: '/photoshare/_design/photoshare/_view/photo_and_comments?startkey=["'+selectedPictureId+'",0]&endkey=["'+selectedPictureId+'",1]',
    dataType: 'json',
    contentType: 'application/json',
-   success: onFetchSuccess,
+   success: renderComments,
    error: onFetchFailure
   });
 }
