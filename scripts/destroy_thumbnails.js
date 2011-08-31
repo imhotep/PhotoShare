@@ -1,4 +1,4 @@
-var nano = require('nano')('http://localhost:8080'); // TODO change this to real server
+var nano = require('nano')('http://couchbase.ic.ht'); // TODO change this to real server
 var photoshare = nano.use('photoshare')
 
 photoshare.list({include_docs: true}, function(_,_,all_docs) {
@@ -11,7 +11,6 @@ photoshare.list({include_docs: true}, function(_,_,all_docs) {
         console.log('Destroyed ', des);
       });
     }
-
     if(d.doc.thumbnail_id) {
       delete d.doc.thumbnail_id;
       delete d.doc.comments;

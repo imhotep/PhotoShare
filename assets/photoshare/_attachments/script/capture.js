@@ -175,14 +175,14 @@ function sendComment() {
 
 function onImageClick() {
   // FIXME: maybe use a hidden field instead?
-  var selectedPictureId = this.id;
+  var selectedPictureId = this.id.replace('-thumbnail', '');
   var tmpImgSrc = this.src;
   $('#photoview-image').attr('src', tmpImgSrc).css('width', '100%');
   $('#photoview').css("-webkit-transform","translate(0,0)");
   
   function showBigPhoto() {
-      console.log("showBigPhoto")
-      $('#photoview-image').attr('src', '/photoshare/'+selectedPictureId+'/original.jpg')
+      console.log("showBigPhoto");
+      $('#photoview-image').attr('src', '/photoshare/'+selectedPictureId+'/original.jpg');
   }
   
   // switch to the hi res if we have it

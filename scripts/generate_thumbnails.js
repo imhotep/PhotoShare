@@ -1,11 +1,13 @@
 var follow = require('./follow');
-var nano = require('nano')('http://localhost:8080'); // TODO change this to real server
+//var nano = require('nano')('http://localhost:8080'); // TODO change this to real server
+var nano = require('nano')('http://couchbase.ic.ht'); // TODO change this to real server
 var photoshare = nano.use('photoshare')
 var fs = require('fs');
 var spawn = require('child_process').spawn;
 
-follow("http://localhost:8080/photoshare", function(error, change) {
-  if(error) { throw e; }
+//follow("http://localhost:8080/photoshare", function(error, change) {
+follow("http://couchbase.ic.ht/photoshare", function(error, change) {
+  if(error) { throw error; }
   if(!change.deleted) {
     console.log("Got change number " + change.seq + ": " + change.id);
     photoshare.get(change.id, {}, function(_,_,doc) {
@@ -16,7 +18,7 @@ follow("http://localhost:8080/photoshare", function(error, change) {
         var original = change.id+'.jpg'; // original filename
         var original_st = fs.createWriteStream(original, {encoding:'binary'}); // original stream
         // creating thumbnail document
-        photoshare.insert({type: 'thumbnail', original_id: change.id}, function(e,h,tdoc) {
+        photoshare.insert({type: 'thumbnail', original_id: change.id, _id: change.id+"-thumbnail"}, function(e,h,tdoc) {
           if(e) { throw e; }
           console.log('New thumbnail document created!', tdoc.rev);
 
